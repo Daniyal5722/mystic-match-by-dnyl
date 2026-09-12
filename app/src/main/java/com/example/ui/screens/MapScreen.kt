@@ -176,6 +176,10 @@ fun MapScreen(viewModel: GameViewModel) {
 
               Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                  Text("Best Score", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
+                  Text(if (level.bestScore > 0) "${level.bestScore}" else "No Score Yet", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Secondary)
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                   Text("Recommended Power", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                   Text("${level.recommendedPower}", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }

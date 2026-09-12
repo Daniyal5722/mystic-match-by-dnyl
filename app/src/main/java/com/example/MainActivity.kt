@@ -72,13 +72,21 @@ class MainActivity : ComponentActivity() {
                       color = Primary
                     )
                   }
-                  Box(
-                    modifier = Modifier
-                      .size(32.dp)
-                      .background(Primary),
-                    contentAlignment = Alignment.Center
+                  Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                   ) {
-                    Text(viewModel.profile.avatar, fontSize = 16.sp)
+                    IconButton(onClick = { viewModel.isPaused = true }) {
+                      Text("⏸️", fontSize = 18.sp, color = Primary)
+                    }
+                    Box(
+                      modifier = Modifier
+                        .size(32.dp)
+                        .background(Primary),
+                      contentAlignment = Alignment.Center
+                    ) {
+                      Text(viewModel.profile.avatar, fontSize = 16.sp)
+                    }
                   }
                 }
               }

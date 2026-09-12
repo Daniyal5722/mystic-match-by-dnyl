@@ -6,12 +6,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.scale
+import androidx.compose.animation.core.animateFloat
 import com.example.model.GemType
 import com.example.model.GameViewModel
 import com.example.ui.components.NeoButton
@@ -111,7 +114,11 @@ fun PuzzleBoardScreen(viewModel: GameViewModel) {
           ) {
             Column {
               Text("SCORE", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
-              Text("${viewModel.levelScore}", fontSize = 20.sp, fontWeight = FontWeight.Black, color = Primary)
+              val animatedScore by androidx.compose.animation.core.animateIntAsState(
+                targetValue = viewModel.levelScore,
+                label = "scoreAnimation"
+              )
+              Text("$animatedScore", fontSize = 20.sp, fontWeight = FontWeight.Black, color = Primary)
             }
             Text("🏆", fontSize = 24.sp)
           }
@@ -199,6 +206,40 @@ fun PuzzleBoardScreen(viewModel: GameViewModel) {
           }
         }
       }
+
+      // Floating Multiplier text overlay
+      viewModel.activeMultiplierText?.let { text ->
+        Box(
+          modifier = Modifier.fillMaxSize(),
+          contentAlignment = Alignment.Center
+        ) {
+          val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "multiplier")
+          val scale by infiniteTransition.animateFloat(
+            initialValue = 0.9f,
+            targetValue = 1.3f,
+            animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+              animation = androidx.compose.animation.core.tween(400, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+              repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+            ),
+            label = "scale"
+          )
+          Surface(
+            color = Secondary,
+            border = androidx.compose.foundation.BorderStroke(3.dp, Primary),
+            modifier = Modifier
+              .scale(scale)
+              .offset(y = (-40).dp)
+          ) {
+            Text(
+              text = text,
+              fontWeight = FontWeight.ExtraBold,
+              color = Color.White,
+              fontSize = 18.sp,
+              modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+          }
+        }
+      }
     }
 
     // Helper Instruction
@@ -236,6 +277,75 @@ fun PuzzleBoardScreen(viewModel: GameViewModel) {
         icon = "✨",
         onClick = { viewModel.activateBooster("rainbow") }
       )
+    }
+
+    // Pause Modal
+    if (viewModel.isPaused) {
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .background(Primary.copy(alpha = 0.8f)),
+        contentAlignment = Alignment.Center
+      ) {
+        Box(modifier = Modifier.padding(24.dp)) {
+          Box(
+            modifier = Modifier
+              .matchParentSize()
+              .offset(x = 6.dp, y = 6.dp)
+              .background(MaterialTheme.colorScheme.tertiaryContainer)
+          )
+          Surface(
+            modifier = Modifier
+              .fillMaxWidth()
+              .border(3.dp, Primary),
+            color = MaterialTheme.colorScheme.surface
+          ) {
+            Column(
+              modifier = Modifier.padding(24.dp),
+              horizontalAlignment = Alignment.CenterHorizontally,
+              verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+              Text(
+                text = "⏸️",
+                fontSize = 40.sp
+              )
+              Text(
+                text = "GAME PAUSED",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 20.sp,
+                color = Primary
+              )
+              Text(
+                text = "Take a breath. Your crystals are safely aligned.",
+                fontSize = 13.sp,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
+              NeoButton(
+                text = "RESUME GAME ▶",
+                onClick = { viewModel.isPaused = false },
+                backgroundColor = Secondary,
+                textColor = Color.White,
+                isSecondary = true
+              )
+              NeoButton(
+                text = "RESTART LEVEL 🔂",
+                onClick = {
+                  viewModel.isPaused = false
+                  viewModel.activeLevel?.let { viewModel.startLevel(it) }
+                }
+              )
+              NeoButton(
+                text = "RETURN TO MAP 🗺️",
+                onClick = {
+                  viewModel.isPaused = false
+                  viewModel.navigateTo("map")
+                }
+              )
+            }
+          }
+        }
+      }
     }
 
     // Win / Lose Modal

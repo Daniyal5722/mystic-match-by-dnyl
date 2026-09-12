@@ -36,6 +36,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   var activeLevel by mutableStateOf<Level?>(null)
     private set
 
+  var isPaused by mutableStateOf(false)
+
   // Board state: 8x8 grid of GemType
   var board by mutableStateOf(List(8) { List(8) { GemType.values().random() } })
     private set
@@ -52,6 +54,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   var gameModalState by mutableStateOf<String?>(null) // "win", "lose", null
   var selectedLevelForModal by mutableStateOf<Level?>(null)
   var isBossModalOpen by mutableStateOf(false)
+
+  // Combo Multipliers
+  var currentChain by mutableStateOf(1)
+  var activeMultiplierText by mutableStateOf<String?>(null)
 
   // Settings
   var musicEnabled by mutableStateOf(true)
@@ -135,7 +141,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun onGemClick(r: Int, c: Int) {
-    if (isAnimating || gameModalState != null) return
+    if (isAnimating || gameModalState != null || isPaused) return
 
     if (activeBooster == "hammer") {
       useHammer(r, c)
@@ -160,6 +166,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val matches = findAllMatches(board)
         if (matches.isNotEmpty()) {
           movesLeft--
+          currentChain = 1
           processMatches(matches)
         } else {
           // Swap back
@@ -221,14 +228,22 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
       if (mutableBoard[r][c] == GemType.SAPPHIRE) {
         sapphireCount++
       }
-      // Set to null temporarily or clear
-      // For simplicity in Kotlin state, we can replace matched with new random or handle gravity
     }
 
-    val pts = matches.size * 50
+    val matchSizeMult = if (matches.size > 3) (matches.size - 2) else 1
+    val finalMult = matchSizeMult * currentChain
+    val basePoints = matches.size * 50
+    val pts = basePoints * finalMult
+
+    if (finalMult > 1) {
+      activeMultiplierText = "x$finalMult MULTIPLIER!"
+    } else {
+      activeMultiplierText = null
+    }
+
     levelScore += pts
-    val goldEarned = matches.size * 10
-    val gemsEarned = if (matches.size >= 4) (matches.size - 2) else 1
+    val goldEarned = matches.size * 10 * finalMult
+    val gemsEarned = if (matches.size >= 4) (matches.size - 2) * currentChain else 1
     profile = profile.copy(
       totalScore = profile.totalScore + pts,
       gold = profile.gold + goldEarned,
@@ -258,12 +273,17 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     // Check if cascade creates further matches
     val nextMatches = findAllMatches(board)
     if (nextMatches.isNotEmpty()) {
+      currentChain++
       // chain reaction
       android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
         processMatches(nextMatches)
-      }, 350)
+      }, 450)
     } else {
       isAnimating = false
+      // Clear multiplier after brief delay
+      android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+        activeMultiplierText = null
+      }, 1200)
       checkGameConditions()
     }
   }
