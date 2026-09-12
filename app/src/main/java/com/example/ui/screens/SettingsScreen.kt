@@ -7,11 +7,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.GameViewModel
 import com.example.ui.components.NeoCard
+import com.example.ui.components.NeoButton
 import com.example.ui.theme.Primary
 
 @Composable
@@ -77,6 +79,37 @@ fun SettingsScreen(viewModel: GameViewModel) {
             onCheckedChange = { viewModel.toggleVibration() }
           )
         }
+      }
+    }
+
+    NeoCard {
+      Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("PLAYER ACCOUNT", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Box(
+            modifier = Modifier
+              .size(40.dp)
+              .background(MaterialTheme.colorScheme.primaryContainer)
+              .border(1.dp, Primary),
+            contentAlignment = Alignment.Center
+          ) {
+            Text(viewModel.profile.avatar, fontSize = 20.sp)
+          }
+          Column {
+            Text(viewModel.profile.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(viewModel.profile.email, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+          }
+        }
+        NeoButton(
+          text = "LOGOUT ACCOUNT 🚪",
+          onClick = { viewModel.logoutUser() },
+          backgroundColor = MaterialTheme.colorScheme.errorContainer,
+          textColor = MaterialTheme.colorScheme.onErrorContainer
+        )
       }
     }
 

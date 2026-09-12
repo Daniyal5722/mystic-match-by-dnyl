@@ -87,7 +87,8 @@ fun NeoButton(
 fun TopBarHeader(
   title: String,
   gold: Int,
-  gems: Int
+  gems: Int,
+  avatar: String = "🧙‍♂️"
 ) {
   Surface(
     modifier = Modifier
@@ -111,7 +112,7 @@ fun TopBarHeader(
             .border(1.dp, Primary),
           contentAlignment = Alignment.Center
         ) {
-          Text("CQ", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+          Text("✨", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
         Text(
           text = title.uppercase(),
@@ -161,7 +162,7 @@ fun TopBarHeader(
             .background(Primary),
           contentAlignment = Alignment.Center
         ) {
-          Text("👤", fontSize = 14.sp)
+          Text(avatar, fontSize = 16.sp)
         }
       }
     }

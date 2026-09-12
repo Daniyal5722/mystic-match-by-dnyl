@@ -281,6 +281,35 @@ fun PuzzleBoardScreen(viewModel: GameViewModel) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
               )
               if (state == "win") {
+                Row(
+                  horizontalArrangement = Arrangement.spacedBy(16.dp),
+                  verticalAlignment = Alignment.CenterVertically
+                ) {
+                  Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    border = androidx.compose.foundation.BorderStroke(2.dp, Primary)
+                  ) {
+                    Text(
+                      text = "🪙 +300 Gold",
+                      modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                      fontWeight = FontWeight.Bold,
+                      fontSize = 13.sp,
+                      color = Primary
+                    )
+                  }
+                  Surface(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    border = androidx.compose.foundation.BorderStroke(2.dp, Primary)
+                  ) {
+                    Text(
+                      text = "💎 +15 Gems",
+                      modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                      fontWeight = FontWeight.Bold,
+                      fontSize = 13.sp,
+                      color = Primary
+                    )
+                  }
+                }
                 NeoButton(
                   text = "🏆 VIEW REALM ENDING",
                   onClick = { viewModel.navigateTo("ending") },

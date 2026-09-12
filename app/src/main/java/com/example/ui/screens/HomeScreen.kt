@@ -34,44 +34,129 @@ fun HomeScreen(viewModel: GameViewModel) {
   ) {
     // Player Profile Card
     NeoCard {
+      Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Box(
+              modifier = Modifier
+                .size(56.dp)
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .border(2.dp, Primary),
+              contentAlignment = Alignment.Center
+            ) {
+              Text(viewModel.profile.avatar, fontSize = 28.sp)
+            }
+            Column {
+              Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(viewModel.profile.name, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Primary)
+                if (viewModel.profile.isLoggedIn) {
+                  Surface(
+                    color = MaterialTheme.colorScheme.primary,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Primary)
+                  ) {
+                    Text(
+                      "VERIFIED",
+                      color = Color.White,
+                      fontSize = 8.sp,
+                      fontWeight = FontWeight.Bold,
+                      modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                    )
+                  }
+                }
+              }
+              Text(viewModel.profile.title, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+              Spacer(modifier = Modifier.height(4.dp))
+              Text("🏆 Score: ${viewModel.profile.totalScore}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Primary)
+            }
+          }
+          Column(horizontalAlignment = Alignment.End) {
+            Text("XP PROGRESS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(4.dp))
+            LinearProgressIndicator(
+              progress = { viewModel.profile.xp.toFloat() / viewModel.profile.maxXp },
+              modifier = Modifier
+                .width(80.dp)
+                .height(10.dp)
+                .border(1.dp, Primary),
+              color = MaterialTheme.colorScheme.primaryContainer,
+              trackColor = MaterialTheme.colorScheme.surface
+            )
+            Text("${viewModel.profile.xp} / ${viewModel.profile.maxXp}", fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
+          }
+        }
+
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Text(viewModel.profile.email, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+          Text(
+            text = "SIGN OUT 🚪",
+            fontWeight = FontWeight.Bold,
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier
+              .border(1.dp, MaterialTheme.colorScheme.error)
+              .clickable { viewModel.logoutUser() }
+              .padding(horizontal = 8.dp, vertical = 4.dp)
+          )
+        }
+      }
+    }
+
+    // Daily Bonus Gift
+    NeoCard(backgroundColor = if (viewModel.dailyClaimed) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primaryContainer) {
       Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
         Row(
+          modifier = Modifier.weight(1.0f),
           horizontalArrangement = Arrangement.spacedBy(12.dp),
           verticalAlignment = Alignment.CenterVertically
         ) {
-          Box(
-            modifier = Modifier
-              .size(56.dp)
-              .background(MaterialTheme.colorScheme.primaryContainer)
-              .border(2.dp, Primary),
-            contentAlignment = Alignment.Center
-          ) {
-            Text("CQ", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Primary)
-          }
+          Text("🎁", fontSize = 32.sp)
           Column {
-            Text(viewModel.profile.name, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Primary)
-            Text(viewModel.profile.title, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text("🏆 Score: ${viewModel.profile.totalScore}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Primary)
+            Text("DAILY REALM REWARD", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Primary)
+            Text(
+              text = if (viewModel.dailyClaimed) "Come back tomorrow for more!" else "Claim free daily 500 Gold & 10 Gems!",
+              fontSize = 11.sp,
+              color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
           }
         }
-        Column(horizontalAlignment = Alignment.End) {
-          Text("XP PROGRESS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-          Spacer(modifier = Modifier.height(4.dp))
-          LinearProgressIndicator(
-            progress = { viewModel.profile.xp.toFloat() / viewModel.profile.maxXp },
-            modifier = Modifier
-              .width(80.dp)
-              .height(10.dp)
-              .border(1.dp, Primary),
-            color = MaterialTheme.colorScheme.primaryContainer,
-            trackColor = MaterialTheme.colorScheme.surface
-          )
-          Text("${viewModel.profile.xp} / ${viewModel.profile.maxXp}", fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
+        if (viewModel.dailyClaimed) {
+          Surface(
+            color = MaterialTheme.colorScheme.surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, Primary)
+          ) {
+            Text(
+              text = "CLAIMED",
+              modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+              fontSize = 11.sp,
+              fontWeight = FontWeight.Bold,
+              color = Primary.copy(alpha = 0.5f)
+            )
+          }
+        } else {
+          Button(
+            onClick = { viewModel.claimDailyReward() },
+            colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+            border = androidx.compose.foundation.BorderStroke(2.dp, Primary),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp)
+          ) {
+            Text("CLAIM", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 11.sp)
+          }
         }
       }
     }
@@ -142,20 +227,43 @@ fun HomeScreen(viewModel: GameViewModel) {
         verticalAlignment = Alignment.CenterVertically
       ) {
         Row(
+          modifier = Modifier.weight(1.0f),
           horizontalArrangement = Arrangement.spacedBy(8.dp),
           verticalAlignment = Alignment.CenterVertically
         ) {
-          Text("☑️", fontSize = 20.sp)
+          Text("🎯", fontSize = 20.sp)
           Column {
             Text("DAILY QUEST: PRISM COLLECTOR", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            Text("Harvest 3 Legendary Shards from Obsidian Caverns.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Harvest 3 Legendary Shards. Reward: 300 Gold & 5 Gems", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
           }
         }
-        Surface(
-          color = MaterialTheme.colorScheme.tertiaryContainer,
-          border = androidx.compose.foundation.BorderStroke(1.dp, Primary)
-        ) {
-          Text("2/3 DONE", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        if (viewModel.questClaimed) {
+          Surface(
+            color = MaterialTheme.colorScheme.surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, Primary)
+          ) {
+            Text(
+              "CLAIMED ✅",
+              modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+              fontSize = 10.sp,
+              fontWeight = FontWeight.Bold,
+              color = Primary.copy(alpha = 0.5f)
+            )
+          }
+        } else {
+          Surface(
+            color = MaterialTheme.colorScheme.primaryContainer,
+            border = androidx.compose.foundation.BorderStroke(1.dp, Primary),
+            modifier = Modifier.clickable { viewModel.claimQuestReward() }
+          ) {
+            Text(
+              "CLAIM REWARD 🎁",
+              modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+              fontSize = 10.sp,
+              fontWeight = FontWeight.Bold,
+              color = Primary
+            )
+          }
         }
       }
     }

@@ -31,10 +31,17 @@ fun HeroesScreen(viewModel: GameViewModel) {
     Text("Summon and level up crystal spirits to boost your match-3 damage and special abilities.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
     val heroes = listOf(
-      Triple("Aether Phoenix", "Legendary Fire Spirit", "Doubles Ruby match rewards"),
-      Triple("Sapphire Drake", "Epic Water Guardian", "Automatically turns 3 random gems to Sapphires"),
-      Triple("Emerald Titan", "Rare Earth Golem", "Increases board shuffle defense"),
-      Triple("Topaz Mage", "Epic Light Caster", "Boosts score multiplier by 1.5x")
+      Triple("Aether Phoenix", "🔥 Legendary Fire Spirit", "Doubles Ruby match rewards"),
+      Triple("Sapphire Drake", "💧 Epic Water Guardian", "Automatically turns 3 random gems to Sapphires"),
+      Triple("Emerald Titan", "🗿 Rare Earth Golem", "Increases board shuffle defense"),
+      Triple("Topaz Mage", "⚡ Epic Light Caster", "Boosts score multiplier by 1.5x")
+    )
+
+    val heroIcons = mapOf(
+      "Aether Phoenix" to "🦅",
+      "Sapphire Drake" to "🐉",
+      "Emerald Titan" to "🗿",
+      "Topaz Mage" to "🔮"
     )
 
     heroes.forEach { (name, subtitle, desc) ->
@@ -55,7 +62,7 @@ fun HeroesScreen(viewModel: GameViewModel) {
                 .border(2.dp, Primary),
               contentAlignment = Alignment.Center
             ) {
-              Text("🛡️", fontSize = 20.sp)
+              Text(heroIcons[name] ?: "🛡️", fontSize = 20.sp)
             }
             Column {
               Text(name, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Primary)

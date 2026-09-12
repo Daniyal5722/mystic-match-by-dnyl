@@ -6,10 +6,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import com.example.audio.SoundManager
 import kotlin.math.abs
 
 class GameViewModel(application: Application) : AndroidViewModel(application) {
   private val sharedPrefs = application.getSharedPreferences("mystic_match_prefs", Context.MODE_PRIVATE)
+  private val soundManager = SoundManager()
 
   var currentScreen by mutableStateOf("home")
     private set
@@ -56,6 +58,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   var sfxEnabled by mutableStateOf(true)
   var vibrationEnabled by mutableStateOf(true)
 
+  var dailyClaimed by mutableStateOf(false)
+    private set
+
+  var questClaimed by mutableStateOf(false)
+    private set
+
   init {
     loadProgress()
     initNewBoard()
@@ -63,6 +71,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
   fun navigateTo(screen: String) {
     currentScreen = screen
+    if (sfxEnabled) {
+      soundManager.playMenuClickSound()
+    }
   }
 
   fun openLevelModal(level: Level) {
@@ -86,6 +97,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun startLevel(level: Level) {
+    if (sfxEnabled) {
+      soundManager.playMenuClickSound()
+    }
     activeLevel = level
     levelScore = 0
     movesLeft = 25
@@ -196,6 +210,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   private fun processMatches(matches: Set<Pair<Int, Int>>) {
+    if (sfxEnabled) {
+      soundManager.playMatchSound()
+    }
     isAnimating = true
     val mutableBoard = board.map { it.toMutableList() }.toMutableList()
     var sapphireCount = 0
@@ -210,7 +227,18 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     val pts = matches.size * 50
     levelScore += pts
-    profile = profile.copy(totalScore = profile.totalScore + pts)
+    val goldEarned = matches.size * 10
+    val gemsEarned = if (matches.size >= 4) (matches.size - 2) else 1
+    profile = profile.copy(
+      totalScore = profile.totalScore + pts,
+      gold = profile.gold + goldEarned,
+      gems = profile.gems + gemsEarned
+    )
+    sharedPrefs.edit()
+      .putInt("total_score", profile.totalScore)
+      .putInt("user_gold", profile.gold)
+      .putInt("user_gems", profile.gems)
+      .apply()
     sapphiresCollected += sapphireCount
 
     // Apply gravity & refill
@@ -243,6 +271,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   private fun checkGameConditions() {
     if (sapphiresCollected >= targetSapphires) {
       gameModalState = "win"
+      if (sfxEnabled) {
+        soundManager.playLevelCompleteSound()
+      }
       saveLevelProgress(3)
     } else if (movesLeft <= 0) {
       gameModalState = "lose"
@@ -287,6 +318,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
   fun saveLevelProgress(earnedStars: Int) {
     val levelId = activeLevel?.id ?: 1
+    val bonusGold = 300
+    val bonusGems = 15
+    profile = profile.copy(
+      gold = profile.gold + bonusGold,
+      gems = profile.gems + bonusGems
+    )
     levels = levels.map { lvl ->
       if (lvl.id == levelId) {
         lvl.copy(stars = maxOf(lvl.stars, earnedStars), bestScore = maxOf(lvl.bestScore, levelScore))
@@ -301,6 +338,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     editor.putInt("level_${levelId}_stars", earnedStars)
     editor.putInt("level_${levelId}_score", levelScore)
     editor.putInt("total_score", profile.totalScore)
+    editor.putInt("user_gold", profile.gold)
+    editor.putInt("user_gems", profile.gems)
     editor.putBoolean("level_${levelId + 1}_unlocked", true)
     editor.apply()
   }
@@ -324,19 +363,70 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun logoutUser() {
-    profile = profile.copy(isLoggedIn = false)
+    profile = PlayerProfile(
+      isLoggedIn = false,
+      gold = 0,
+      gems = 0,
+      totalScore = 0
+    )
+    dailyClaimed = false
+    questClaimed = false
     currentScreen = "login"
     sharedPrefs.edit()
+      .clear()
       .putBoolean("user_is_logged_in", false)
       .apply()
   }
 
+  fun claimDailyReward() {
+    if (!dailyClaimed) {
+      dailyClaimed = true
+      if (sfxEnabled) {
+        soundManager.playLevelCompleteSound()
+      }
+      profile = profile.copy(
+        gold = profile.gold + 500,
+        gems = profile.gems + 10
+      )
+      sharedPrefs.edit()
+        .putInt("user_gold", profile.gold)
+        .putInt("user_gems", profile.gems)
+        .putBoolean("daily_reward_claimed", true)
+        .apply()
+    }
+  }
+
+  fun claimQuestReward() {
+    if (!questClaimed) {
+      questClaimed = true
+      if (sfxEnabled) {
+        soundManager.playLevelCompleteSound()
+      }
+      profile = profile.copy(
+        gold = profile.gold + 300,
+        gems = profile.gems + 5
+      )
+      sharedPrefs.edit()
+        .putInt("user_gold", profile.gold)
+        .putInt("user_gems", profile.gems)
+        .putBoolean("quest_reward_claimed", true)
+        .apply()
+    }
+  }
+
   private fun loadProgress() {
     val total = sharedPrefs.getInt("total_score", 0)
+    val gold = sharedPrefs.getInt("user_gold", 0)
+    val gems = sharedPrefs.getInt("user_gems", 0)
     val isLoggedIn = sharedPrefs.getBoolean("user_is_logged_in", true)
     val name = sharedPrefs.getString("user_name", "Aether_Seeker") ?: "Aether_Seeker"
     val email = sharedPrefs.getString("user_email", "seeker@mysticmatch.realm") ?: "seeker@mysticmatch.realm"
     val avatar = sharedPrefs.getString("user_avatar", "🧙‍♂️") ?: "🧙‍♂️"
+    
+    val dailyClaimedVal = sharedPrefs.getBoolean("daily_reward_claimed", false)
+    val questClaimedVal = sharedPrefs.getBoolean("quest_reward_claimed", false)
+    this.dailyClaimed = dailyClaimedVal
+    this.questClaimed = questClaimedVal
 
     val loadedLevels = levels.map { lvl ->
       val stars = sharedPrefs.getInt("level_${lvl.id}_stars", 0)
@@ -347,6 +437,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     levels = loadedLevels
     profile = profile.copy(
       totalScore = total,
+      gold = gold,
+      gems = gems,
       isLoggedIn = isLoggedIn,
       name = name,
       email = email,

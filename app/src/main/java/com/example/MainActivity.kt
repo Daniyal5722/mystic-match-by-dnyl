@@ -35,13 +35,14 @@ class MainActivity : ComponentActivity() {
         Scaffold(
           modifier = Modifier.fillMaxSize(),
           topBar = {
-            if (viewModel.currentScreen != "game") {
+            if (viewModel.currentScreen != "game" && viewModel.currentScreen != "login") {
               TopBarHeader(
                 title = viewModel.currentScreen.replaceFirstChar { it.uppercase() },
                 gold = viewModel.profile.gold,
-                gems = viewModel.profile.gems
+                gems = viewModel.profile.gems,
+                avatar = viewModel.profile.avatar
               )
-            } else {
+            } else if (viewModel.currentScreen == "game") {
               // Game top bar with back button
               Surface(
                 modifier = Modifier
@@ -77,14 +78,14 @@ class MainActivity : ComponentActivity() {
                       .background(Primary),
                     contentAlignment = Alignment.Center
                   ) {
-                    Text("👤", fontSize = 14.sp)
+                    Text(viewModel.profile.avatar, fontSize = 16.sp)
                   }
                 }
               }
             }
           },
           bottomBar = {
-            if (viewModel.currentScreen != "game") {
+            if (viewModel.currentScreen != "game" && viewModel.currentScreen != "login") {
               Surface(
                 modifier = Modifier
                   .fillMaxWidth()
