@@ -1,0 +1,6 @@
+{
+  "name": "Mystic Match",
+  "description": "A high-fidelity, mobile-first match-3 puzzle game featuring a fantasy-themed neo-brutalist UI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
