@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mystic Match - Jewel Quest</title>
+  
+  <!-- SEO & Social Meta Tags -->
+  <meta name="description" content="A premium Match-3 puzzle adventure. Swap mystic crystals, chain cascades for giant multipliers, and complete stages on your level map!">
+  <meta property="og:title" content="Mystic Match - Jewel Quest">
+  <meta property="og:description" content="Swap, match, and conquer level stages with multipliers, power-ups, and native synth SFX!">
+  <meta property="og:type" content="website">
+
+  <!-- Inter & Syne Fonts for premium look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['Syne', 'sans-serif'],
+          },
+          colors: {
+            primary: '#4F46E5', // Indigo
+            secondary: '#EC4899', // Pink
+            accent: '#F59E0B', // Gold
+            cyan: '#06B6D4',
+            dark: '#111827',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Neo-brutalist aesthetics */
+    .neo-shadow {
+      box-shadow: 6px 6px 0px #000000;
+    }
+    .neo-shadow-sm {
+      box-shadow: 3px 3px 0px #000000;
+    }
+    .neo-shadow-lg {
+      box-shadow: 10px 10px 0px #000000;
+    }
+    .neo-border {
+      border: 3px solid #000000;
+    }
+    .neo-border-sm {
+      border: 2px solid #000000;
+    }
+    
+    /* Interactive states */
+    .neo-btn {
+      transition: all 0.15s ease-out;
+    }
+    .neo-btn:active {
+      transform: translate(3px, 3px);
+      box-shadow: 2px 2px 0px #000000;
+    }
+    
+    /* Grid Animations */
+    .gem-pulse {
+      animation: gemPulse 0.3s ease-out;
+    }
+    @keyframes gemPulse {
+      0% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+    
+    /* Multiplier Floating effect */
+    @keyframes floatUp {
+      0% { transform: translateY(0px) scale(0.9); opacity: 0; }
+      15% { opacity: 1; transform: translateY(-10px) scale(1.2); }
+      85% { opacity: 1; transform: translateY(-30px) scale(1.1); }
+      100% { transform: translateY(-40px) scale(0.9); opacity: 0; }
+    }
+    .animate-float {
+      animation: floatUp 1.2s forwards cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+</head>
+<body class="bg-[#F9FAFB] text-dark font-sans min-h-screen flex flex-col selection:bg-secondary selection:text-white overflow-x-hidden">
+
+  <!-- Main Game Container wrapper -->
+  <main class="flex-grow flex flex-col items-center justify-center p-4 max-w-lg w-full mx-auto">
+
+    <!-- SCREEN 1: Name Entry Modal -->
+    <section id="screen-name-prompt" class="hidden w-full bg-white neo-border neo-shadow p-6 rounded-none">
+      <div class="text-center mb-6">
+        <span class="text-5xl">🔮</span>
+        <h1 class="font-display font-black text-3xl tracking-tight mt-2">MYSTIC QUEST</h1>
+        <p class="text-gray-600 text-sm mt-1">Enter your title to start align crystals</p>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider mb-1">Adventurer Name</label>
+          <input type="text" id="name-input" placeholder="Daniyal" class="w-full p-3 bg-gray-50 neo-border font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary rounded-none">
+        </div>
+        <button onclick="saveAdventurerName()" class="w-full py-3 bg-secondary text-white font-black uppercase tracking-widest neo-border neo-shadow neo-btn">
+          Enter Sanctum
+        </button>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: Home Screen -->
+    <section id="screen-home" class="hidden w-full space-y-6">
+      <div class="bg-primary text-white p-6 neo-border neo-shadow rounded-none relative overflow-hidden">
+        <div class="absolute -right-8 -bottom-8 text-9xl opacity-10">💎</div>
+        <span class="text-xs font-black uppercase tracking-widest bg-dark px-2 py-1 text-white neo-border-sm inline-block mb-3">Welcome Back</span>
+        <h2 id="home-welcome-text" class="font-display font-extrabold text-3xl">Hello, Adventurer!</h2>
+        <p class="text-indigo-100 text-sm mt-1">Collect mystical sapphires and claim daily rewards!</p>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="bg-white p-3 neo-border neo-shadow-sm text-center">
+          <p class="text-[10px] font-bold text-gray-500 uppercase">Total Score</p>
+          <p id="stat-score" class="font-black text-lg text-primary">0</p>
+        </div>
+        <div class="bg-white p-3 neo-border neo-shadow-sm text-center">
+          <p class="text-[10px] font-bold text-gray-500 uppercase">Gold</p>
+          <p id="stat-gold" class="font-black text-lg text-accent">0</p>
+        </div>
+        <div class="bg-white p-3 neo-border neo-shadow-sm text-center">
+          <p class="text-[10px] font-bold text-gray-500 uppercase">Gems</p>
+          <p id="stat-gems" class="font-black text-lg text-secondary">0</p>
+        </div>
+      </div>
+
+      <!-- Menu Actions -->
+      <div class="space-y-3">
+        <button onclick="showMapScreen()" class="w-full py-4 bg-secondary text-white font-black uppercase tracking-widest text-lg neo-border neo-shadow neo-btn flex items-center justify-center space-x-2">
+          <span>PLAY GAME ▶</span>
+        </button>
+        <button onclick="claimDailyReward()" id="daily-btn" class="w-full py-3 bg-white hover:bg-gray-50 text-dark font-black uppercase tracking-wider text-sm neo-border neo-shadow-sm neo-btn flex items-center justify-center space-x-2">
+          <span>🎁 CLAIM DAILY GIFT (+500G)</span>
+        </button>
+        <button onclick="showSettingsScreen()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-dark font-black uppercase tracking-wider text-sm neo-border neo-shadow-sm neo-btn">
+          ⚙️ SETTINGS & PROFILE
+        </button>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: Settings & Profile -->
+    <section id="screen-settings" class="hidden w-full bg-white neo-border neo-shadow p-6 space-y-6">
+      <div class="flex items-center justify-between border-b-2 border-black pb-4">
+        <h2 class="font-display font-black text-2xl">SETTINGS</h2>
+        <button onclick="showHomeScreen()" class="text-sm font-bold bg-gray-100 px-3 py-1 neo-border-sm">Back</button>
+      </div>
+
+      <!-- Profile Edit -->
+      <div class="space-y-3">
+        <h3 class="text-xs font-black uppercase tracking-wider text-gray-500">Edit Name</h3>
+        <div class="flex gap-2">
+          <input type="text" id="settings-name-input" class="flex-grow p-2 bg-gray-50 neo-border font-bold focus:outline-none">
+          <button onclick="updateProfileName()" class="px-4 py-2 bg-primary text-white font-black text-xs uppercase neo-border neo-shadow-sm neo-btn">Save</button>
+        </div>
+      </div>
+
+      <!-- Toggles -->
+      <div class="space-y-4">
+        <h3 class="text-xs font-black uppercase tracking-wider text-gray-500">Audio Settings</h3>
+        <div class="flex items-center justify-between p-3 bg-gray-50 neo-border-sm">
+          <span class="font-bold text-sm">🎶 Background Music</span>
+          <button onclick="toggleMusic()" id="toggle-music-btn" class="px-4 py-1.5 bg-primary text-white font-bold text-xs uppercase neo-border-sm">ON</button>
+        </div>
+        <div class="flex items-center justify-between p-3 bg-gray-50 neo-border-sm">
+          <span class="font-bold text-sm">🔊 Sound Effects (SFX)</span>
+          <button onclick="toggleSFX()" id="toggle-sfx-btn" class="px-4 py-1.5 bg-primary text-white font-bold text-xs uppercase neo-border-sm">ON</button>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="pt-4 border-t-2 border-black space-y-2">
+        <h3 class="text-xs font-black uppercase tracking-wider text-red-500">Danger Zone</h3>
+        <button onclick="confirmResetData()" class="w-full py-2 bg-red-100 hover:bg-red-200 text-red-700 font-bold text-xs uppercase neo-border-sm">
+          ⚠️ RESET ALL GAME DATA
+        </button>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: Level Map -->
+    <section id="screen-map" class="hidden w-full space-y-4">
+      <div class="flex items-center justify-between bg-white p-4 neo-border neo-shadow">
+        <div>
+          <p class="text-[10px] font-black text-gray-500 uppercase tracking-wider">Level Road</p>
+          <h2 class="font-display font-black text-xl">🗺️ STAGE SELECT</h2>
+        </div>
+        <button onclick="showHomeScreen()" class="px-3 py-1 bg-gray-100 neo-border-sm text-xs font-bold neo-btn">Home</button>
+      </div>
+
+      <!-- Roadmap nodes scrollable -->
+      <div class="bg-indigo-50 border-3 border-black neo-border neo-shadow p-6 min-h-[380px] relative flex flex-col justify-between space-y-8">
+        
+        <!-- Level Node 3 -->
+        <div class="flex items-center justify-end">
+          <div onclick="selectLevelNode(3)" id="node-3" class="w-20 h-20 bg-gray-300 text-gray-500 font-black flex flex-col items-center justify-center neo-border neo-shadow-sm cursor-not-allowed">
+            <span class="text-xs">STAGE 3</span>
+            <span class="text-xs mt-1">🔒</span>
+          </div>
+        </div>
+
+        <!-- Level Node 2 -->
+        <div class="flex items-center justify-center">
+          <div onclick="selectLevelNode(2)" id="node-2" class="w-20 h-20 bg-gray-300 text-gray-500 font-black flex flex-col items-center justify-center neo-border neo-shadow-sm cursor-not-allowed">
+            <span class="text-xs">STAGE 2</span>
+            <span class="text-xs mt-1">🔒</span>
+          </div>
+        </div>
+
+        <!-- Level Node 1 -->
+        <div class="flex items-center justify-start">
+          <div onclick="selectLevelNode(1)" id="node-1" class="w-20 h-20 bg-primary text-white font-black flex flex-col items-center justify-center neo-border neo-shadow-sm cursor-pointer hover:scale-105 transition-transform">
+            <span class="text-xs">STAGE 1</span>
+            <span id="stars-1" class="text-xs mt-1 text-accent">☆☆☆</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- LEVEL DETAILS MODAL -->
+      <div id="level-modal" class="hidden bg-white neo-border neo-shadow p-5 relative">
+        <h3 id="modal-level-title" class="font-display font-black text-lg">Stage 1: Crystal Caves</h3>
+        <p class="text-xs text-gray-500 uppercase font-semibold mt-0.5">Objective: Align matching colors</p>
+        
+        <div class="my-4 space-y-2 border-y border-gray-200 py-3">
+          <div class="flex justify-between text-xs font-bold">
+            <span class="text-gray-600">Goal:</span>
+            <span class="text-secondary font-black">Collect 15 Sapphire Gems 🌀</span>
+          </div>
+          <div class="flex justify-between text-xs font-bold">
+            <span class="text-gray-600">Moves Allowed:</span>
+            <span>25</span>
+          </div>
+          <div class="flex justify-between text-xs font-bold">
+            <span class="text-gray-600">Best Score:</span>
+            <span id="modal-best-score" class="text-primary font-black">No Score Yet</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="closeLevelModal()" class="flex-1 py-2 bg-gray-100 font-bold uppercase text-xs neo-border-sm neo-btn">Cancel</button>
+          <button onclick="launchLevel()" class="flex-1 py-2 bg-secondary text-white font-black uppercase text-xs neo-border-sm neo-shadow-sm neo-btn">Start ⚡</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 5: Interactive Gameplay Board -->
+    <section id="screen-gameplay" class="hidden w-full space-y-4">
+      
+      <!-- Top Score / Stats Bar -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="bg-white p-2 neo-border-sm text-center">
+          <p class="text-[9px] font-bold uppercase text-gray-500">Moves Left</p>
+          <p id="game-moves" class="font-black text-base text-secondary">25</p>
+        </div>
+        <div class="bg-white p-2 neo-border-sm text-center">
+          <p class="text-[9px] font-bold uppercase text-gray-500">Sapphires</p>
+          <p id="game-sapphires" class="font-black text-base text-cyan">0 / 15</p>
+        </div>
+        <div class="bg-white p-2 neo-border-sm text-center">
+          <p class="text-[9px] font-bold uppercase text-gray-500">Current Score</p>
+          <p id="game-score" class="font-black text-base text-primary">0</p>
+        </div>
+      </div>
+
+      <!-- Active Game Board Stack Container -->
+      <div class="relative w-full aspect-square bg-indigo-50 neo-border neo-shadow p-2">
+        <div id="board-grid" class="grid grid-cols-8 grid-rows-8 gap-1 w-full h-full">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Floating multiplier text badge container -->
+        <div id="multiplier-badge-container" class="absolute inset-0 flex items-center justify-center pointer-events-none hidden">
+          <div id="multiplier-badge" class="bg-secondary text-white font-black text-lg px-4 py-2 neo-border neo-shadow animate-float">
+            MULTIPLIER x2!
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Action Guides -->
+      <div class="flex items-center justify-between px-1">
+        <p id="game-instruction" class="text-xs font-black uppercase tracking-wider text-gray-500">
+          👉 TAP TWO ADJACENT GEMS TO SWAP!
+        </p>
+        <button onclick="togglePauseGame()" class="text-sm px-2.5 py-1 bg-white neo-border-sm font-black neo-btn">⏸️ PAUSE</button>
+      </div>
+
+      <!-- Boosters Bar -->
+      <div class="bg-white p-3 neo-border-sm flex items-center justify-between">
+        <div>
+          <span class="text-xs font-black uppercase tracking-wider block text-gray-500">Power Booster</span>
+          <span class="text-xs font-bold text-accent">Cost: 200 Gold</span>
+        </div>
+        <button onclick="activateHammerBooster()" id="hammer-btn" class="px-4 py-2 bg-accent text-dark font-black text-xs uppercase neo-border-sm neo-shadow-sm neo-btn">
+          🔨 USE HAMMER
+        </button>
+      </div>
+    </section>
+
+    <!-- SCREEN 6: Pause Overlay Modal -->
+    <div id="modal-pause" class="hidden fixed inset-0 bg-primary/80 flex items-center justify-center p-4 z-50">
+      <div class="bg-white neo-border neo-shadow p-6 max-w-sm w-full space-y-4">
+        <div class="text-center">
+          <span class="text-4xl">⏸️</span>
+          <h2 class="font-display font-black text-xl mt-2">GAME PAUSED</h2>
+          <p class="text-xs text-gray-500 mt-1">Crystals are safely aligned. Ready to resume?</p>
+        </div>
+        <button onclick="togglePauseGame()" class="w-full py-3 bg-secondary text-white font-black uppercase text-sm neo-border neo-shadow neo-btn">
+          RESUME GAME ▶
+        </button>
+        <button onclick="restartLevel()" class="w-full py-3 bg-white text-dark font-black uppercase text-sm neo-border-sm neo-btn">
+          RESTART LEVEL 🔂
+        </button>
+        <button onclick="exitToMap()" class="w-full py-3 bg-gray-100 text-dark font-black uppercase text-sm neo-border-sm neo-btn">
+          EXIT TO MAP 🗺️
+        </button>
+      </div>
+    </div>
+
+    <!-- SCREEN 7: Game Over / Victory Modal -->
+    <div id="modal-gameover" class="hidden fixed inset-0 bg-dark/90 flex items-center justify-center p-4 z-50">
+      <div class="bg-white neo-border neo-shadow p-6 max-w-sm w-full space-y-6">
+        <div class="text-center space-y-2">
+          <span id="modal-gameover-emoji" class="text-5xl">🏆</span>
+          <h2 id="modal-gameover-title" class="font-display font-black text-2xl">LEVEL COMPLETED!</h2>
+          <p id="modal-gameover-msg" class="text-xs text-gray-500 uppercase tracking-widest">Aesthetic matching completed!</p>
+        </div>
+
+        <div class="border-y border-gray-200 py-3 space-y-2 text-sm font-bold">
+          <div class="flex justify-between">
+            <span class="text-gray-500">Final Level Score:</span>
+            <span id="modal-gameover-score" class="text-primary font-black">0</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Best Score:</span>
+            <span id="modal-gameover-best" class="text-secondary font-black">0</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Gems Earned:</span>
+            <span id="modal-gameover-reward" class="text-accent font-black">+1 Gem 💎</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="exitToMap()" class="flex-1 py-3 bg-gray-100 font-bold uppercase text-xs neo-border-sm neo-btn">Return 🗺️</button>
+          <button onclick="restartLevel()" class="flex-1 py-3 bg-secondary text-white font-black uppercase text-xs neo-border neo-shadow-sm neo-btn">Play Again 🔂</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Static Footer Info -->
+  <footer class="text-center py-4 text-xs font-semibold text-gray-400">
+    Mystic Match Quest &copy; 2026. Perfect for publishing on Vercel.
+  </footer>
+
+  <!-- STANDALONE JS GAME ENGINE -->
+  <script>
+    // State management
+    let state = {
+      name: localStorage.getItem('adv_name') || '',
+      totalScore: parseInt(localStorage.getItem('total_score')) || 0,
+      gold: parseInt(localStorage.getItem('user_gold')) || 1000,
+      gems: parseInt(localStorage.getItem('user_gems')) || 10,
+      bestScore: parseInt(localStorage.getItem('best_score')) || 0,
+      unlockedStage: parseInt(localStorage.getItem('unlocked_stage')) || 1,
+      dailyClaimed: localStorage.getItem('daily_claimed') === 'true',
+      musicEnabled: (localStorage.getItem('music_on') !== 'false'),
+      sfxEnabled: (localStorage.getItem('sfx_on') !== 'false'),
+      
+      // Active gameplay
+      activeLevel: null,
+      levelScore: 0,
+      movesLeft: 25,
+      sapphiresCollected: 0,
+      targetSapphires: 15,
+      board: [], // 8x8 list
+      selectedGem: null, // Pair(r, c)
+      activeBooster: null, // 'hammer' or null
+      currentChain: 1,
+      isPaused: false,
+      isAnimating: false
+    };
+
+    // Gem definitions
+    const GEMS = [
+      { id: 'ruby', symbol: '🔴', color: '#FEE2E2' },
+      { id: 'emerald', symbol: '🟢', color: '#D1FAE5' },
+      { id: 'topaz', symbol: '🔶', color: '#FEF3C7' },
+      { id: 'amethyst', symbol: '🔮', color: '#F3E8FF' },
+      { id: 'cyan_gem', symbol: '💎', color: '#CFFAFE' },
+      { id: 'sapphire', symbol: '🌀', color: '#DBEAFE' } // Target crystal
+    ];
+
+    // Low-latency Web Audio API Synth Engine (No external sound files required)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playTone(frequencies, durationMs, amplitude = 0.2, sweep = false) {
+      if (!state.sfxEnabled) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        osc.type = 'sine';
+        gainNode.gain.setValueAtTime(amplitude, audioCtx.currentTime);
+
+        if (frequencies.length === 1) {
+          const freq = frequencies[0];
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          if (sweep) {
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.8, audioCtx.currentTime + (durationMs / 1000));
+          }
+        } else {
+          // Play sequence/arpeggio
+          const step = (durationMs / frequencies.length) / 1000;
+          frequencies.forEach((freq, i) => {
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (i * step));
+          });
+        }
+
+        // Linear fade-out to prevent pop clicks
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (durationMs / 1000));
+        osc.start();
+        osc.stop(audioCtx.currentTime + (durationMs / 1000));
+      } catch (e) {
+        console.warn("Audio Context error:", e);
+      }
+    }
+
+    function playMatchSound() {
+      playTone([480], 150, 0.25, true);
+    }
+
+    function playVictorySound() {
+      playTone([261.63, 329.63, 392.00, 523.25], 600, 0.3);
+    }
+
+    function playClickSound() {
+      playTone([160], 60, 0.15);
+    }
+
+    function playHammerSound() {
+      playTone([100], 250, 0.35, true);
+    }
+
+    // Initialize application and route
+    window.addEventListener('DOMContentLoaded', () => {
+      syncUIStats();
+      if (!state.name) {
+        showScreen('screen-name-prompt');
+      } else {
+        showScreen('screen-home');
+      }
+    });
+
+    // Navigation and screen helper
+    function showScreen(screenId) {
+      document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    // SCREEN 1: Name Entry
+    function saveAdventurerName() {
+      const input = document.getElementById('name-input').value.trim();
+      if (!input) return;
+      state.name = input;
+      localStorage.setItem('adv_name', input);
+      playClickSound();
+      showHomeScreen();
+    }
+
+    // SCREEN 2: Home Screen updates
+    function showHomeScreen() {
+      document.getElementById('home-welcome-text').innerText = `Welcome, ${state.name}!`;
+      syncUIStats();
+      
+      const dailyBtn = document.getElementById('daily-btn');
+      if (state.dailyClaimed) {
+        dailyBtn.innerHTML = "<span>✅ DAILY GIFT CLAIMED</span>";
+        dailyBtn.classList.add('opacity-60', 'cursor-not-allowed');
+        dailyBtn.disabled = true;
+      }
+      
+      showScreen('screen-home');
+    }
+
+    function syncUIStats() {
+      document.getElementById('stat-score').innerText = state.totalScore;
+      document.getElementById('stat-gold').innerText = state.gold;
+      document.getElementById('stat-gems').innerText = state.gems;
+    }
+
+    function claimDailyReward() {
+      if (state.dailyClaimed) return;
+      state.dailyClaimed = true;
+      state.gold += 500;
+      state.gems += 5;
+      localStorage.setItem('daily_claimed', 'true');
+      localStorage.setItem('user_gold', state.gold);
+      localStorage.setItem('user_gems', state.gems);
+      playVictorySound();
+      showHomeScreen();
+    }
+
+    // SCREEN 3: Settings Panel
+    function showSettingsScreen() {
+      document.getElementById('settings-name-input').value = state.name;
+      document.getElementById('toggle-music-btn').innerText = state.musicEnabled ? 'ON' : 'OFF';
+      document.getElementById('toggle-sfx-btn').innerText = state.sfxEnabled ? 'ON' : 'OFF';
+      showScreen('screen-settings');
+    }
+
+    function updateProfileName() {
+      const input = document.getElementById('settings-name-input').value.trim();
+      if (!input) return;
+      state.name = input;
+      localStorage.setItem('adv_name', input);
+      playClickSound();
+      alert("Name updated successfully!");
+    }
+
+    function toggleMusic() {
+      state.musicEnabled = !state.musicEnabled;
+      localStorage.setItem('music_on', state.musicEnabled);
+      document.getElementById('toggle-music-btn').innerText = state.musicEnabled ? 'ON' : 'OFF';
+      playClickSound();
+    }
+
+    function toggleSFX() {
+      state.sfxEnabled = !state.sfxEnabled;
+      localStorage.setItem('sfx_on', state.sfxEnabled);
+      document.getElementById('toggle-sfx-btn').innerText = state.sfxEnabled ? 'ON' : 'OFF';
+      playClickSound();
+    }
+
+    function confirmResetData() {
+      if (confirm("Are you sure you want to delete all save data? This cannot be undone.")) {
+        localStorage.clear();
+        window.location.reload();
+      }
+    }
+
+    // SCREEN 4: Level selection Map
+    function showMapScreen() {
+      const node2 = document.getElementById('node-2');
+      const node3 = document.getElementById('node-3');
+
+      // Sync unlocked states
+      if (state.unlockedStage >= 2) {
+        node2.className = "w-20 h-20 bg-primary text-white font-black flex flex-col items-center justify-center neo-border neo-shadow-sm cursor-pointer hover:scale-105 transition-transform";
+        node2.innerHTML = `<span class="text-xs">STAGE 2</span><span id="stars-2" class="text-xs mt-1 text-accent">☆☆☆</span>`;
+        node2.onclick = () => selectLevelNode(2);
+      }
+      if (state.unlockedStage >= 3) {
+        node3.className = "w-20 h-20 bg-primary text-white font-black flex flex-col items-center justify-center neo-border neo-shadow-sm cursor-pointer hover:scale-105 transition-transform";
+        node3.innerHTML = `<span class="text-xs">STAGE 3</span><span id="stars-3" class="text-xs mt-1 text-accent">☆☆☆</span>`;
+        node3.onclick = () => selectLevelNode(3);
+      }
+
+      // Populate Star Displays
+      const star1 = document.getElementById('stars-1');
+      if (star1) star1.innerText = (state.bestScore > 1000) ? '★★★' : (state.bestScore > 500) ? '★★☆' : '★☆☆';
+
+      showScreen('screen-map');
+    }
+
+    function selectLevelNode(levelNum) {
+      playClickSound();
+      state.activeLevel = levelNum;
+      
+      const modal = document.getElementById('level-modal');
+      const modalTitle = document.getElementById('modal-level-title');
+      const modalBest = document.getElementById('modal-best-score');
+
+      modalTitle.innerText = `Stage ${levelNum}: Crystal Chambers`;
+      modalBest.innerText = state.bestScore > 0 ? `${state.bestScore} Points` : "No Score Yet";
+      
+      modal.classList.remove('hidden');
+    }
+
+    function closeLevelModal() {
+      playClickSound();
+      document.getElementById('level-modal').classList.add('hidden');
+    }
+
+    // SCREEN 5: Active Gameplay
+    function launchLevel() {
+      playClickSound();
+      document.getElementById('level-modal').classList.add('hidden');
+      
+      // Initialize Level variables
+      state.levelScore = 0;
+      state.movesLeft = 25;
+      state.sapphiresCollected = 0;
+      state.activeBooster = null;
+      state.isPaused = false;
+      state.isAnimating = false;
+      state.currentChain = 1;
+
+      // Update HUD
+      document.getElementById('game-moves').innerText = state.movesLeft;
+      document.getElementById('game-sapphires').innerText = `0 / ${state.targetSapphires}`;
+      document.getElementById('game-score').innerText = state.levelScore;
+      document.getElementById('game-instruction').innerText = "👉 TAP TWO ADJACENT GEMS TO SWAP!";
+      document.getElementById('hammer-btn').classList.remove('bg-red-500', 'text-white');
+
+      // Populate Board
+      buildRandomBoard();
+      renderBoardUI();
+
+      showScreen('screen-gameplay');
+    }
+
+    function buildRandomBoard() {
+      state.board = [];
+      for (let r = 0; r < 8; r++) {
+        const row = [];
+        for (let c = 0; c < 8; c++) {
+          row.push(GEMS[Math.floor(Math.random() * GEMS.length)]);
+        }
+        state.board.push(row);
+      }
+    }
+
+    function renderBoardUI() {
+      const grid = document.getElementById('board-grid');
+      grid.innerHTML = '';
+
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const gem = state.board[r][c];
+          const div = document.createElement('div');
+          
+          div.className = "w-full h-full neo-border-sm flex items-center justify-center cursor-pointer font-bold text-xl select-none gem-pulse transition-all";
+          div.style.backgroundColor = gem.color;
+          div.innerText = gem.symbol;
+
+          // Border highlighting if selected
+          if (state.selectedGem && state.selectedGem.r === r && state.selectedGem.c === c) {
+            div.style.borderColor = "#EC4899"; // Pink selected border
+            div.style.borderWidth = "4px";
+          }
+
+          div.onclick = () => handleGemClick(r, c);
+          grid.appendChild(div);
+        }
+      }
+    }
+
+    function handleGemClick(r, c) {
+      if (state.isAnimating || state.isPaused) return;
+
+      // Hammer booster processing
+      if (state.activeBooster === 'hammer') {
+        useHammer(r, c);
+        return;
+      }
+
+      if (!state.selectedGem) {
+        state.selectedGem = { r, c };
+        playClickSound();
+        renderBoardUI();
+      } else {
+        const prev = state.selectedGem;
+        const isAdjacent = (Math.abs(prev.r - r) === 1 && prev.c === c) || (Math.abs(prev.c - c) === 1 && prev.r === r);
+
+        if (isAdjacent) {
+          // Attempt swap
+          swapGems(prev.r, prev.c, r, c);
+          state.selectedGem = null;
+
+          const matches = findAllMatches();
+          if (matches.length > 0) {
+            state.movesLeft--;
+            state.currentChain = 1;
+            processMatches(matches);
+          } else {
+            // Swap back
+            swapGems(prev.r, prev.c, r, c);
+            playTone([100], 100);
+            renderBoardUI();
+          }
+        } else {
+          // Re-select
+          state.selectedGem = { r, c };
+          playClickSound();
+          renderBoardUI();
+        }
+      }
+    }
+
+    function swapGems(r1, c1, r2, c2) {
+      const temp = state.board[r1][c1];
+      state.board[r1][c1] = state.board[r2][c2];
+      state.board[r2][c2] = temp;
+    }
+
+    function findAllMatches() {
+      const matchSet = new Set();
+
+      // Horizontal checking
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 6; c++) {
+          const t1 = state.board[r][c];
+          const t2 = state.board[r][c+1];
+          const t3 = state.board[r][c+2];
+          if (t1.id === t2.id && t1.id === t3.id) {
+            matchSet.add(`${r},${c}`);
+            matchSet.add(`${r},${c+1}`);
+            matchSet.add(`${r},${c+2}`);
+          }
+        }
+      }
+
+      // Vertical checking
+      for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 8; c++) {
+          const t1 = state.board[r][c];
+          const t2 = state.board[r+1][c];
+          const t3 = state.board[r+2][c];
+          if (t1.id === t2.id && t1.id === t3.id) {
+            matchSet.add(`${r},${c}`);
+            matchSet.add(`${r+1},${c}`);
+            matchSet.add(`${r+2},${c}`);
+          }
+        }
+      }
+
+      // Format back to coords
+      return Array.from(matchSet).map(s => {
+        const parts = s.split(',');
+        return { r: parseInt(parts[0]), c: parseInt(parts[1]) };
+      });
+    }
+
+    function processMatches(matches) {
+      state.isAnimating = true;
+      playMatchSound();
+
+      let sapphires = 0;
+      matches.forEach(m => {
+        if (state.board[m.r][m.c].id === 'sapphire') {
+          sapphires++;
+        }
+      });
+
+      // Calculate multiplier
+      const matchSizeMult = matches.length > 3 ? (matches.length - 2) : 1;
+      const finalMult = matchSizeMult * state.currentChain;
+      const pts = (matches.length * 50) * finalMult;
+
+      state.levelScore += pts;
+      state.sapphiresCollected += sapphires;
+
+      // Multiplier Floating trigger
+      const container = document.getElementById('multiplier-badge-container');
+      const badge = document.getElementById('multiplier-badge');
+      if (finalMult > 1) {
+        badge.innerText = `x${finalMult} MULTIPLIER!`;
+        container.classList.remove('hidden');
+      }
+
+      // Update HUD
+      document.getElementById('game-score').innerText = state.levelScore;
+      document.getElementById('game-moves').innerText = state.movesLeft;
+      document.getElementById('game-sapphires').innerText = `${state.sapphiresCollected} / ${state.targetSapphires}`;
+
+      // Refill matched tiles
+      matches.forEach(m => {
+        state.board[m.r][m.c] = GEMS[Math.floor(Math.random() * GEMS.length)];
+      });
+
+      renderBoardUI();
+
+      // Check cascades after brief cascade delay
+      setTimeout(() => {
+        container.classList.add('hidden');
+        const nextMatches = findAllMatches();
+        if (nextMatches.length > 0) {
+          state.currentChain++;
+          processMatches(nextMatches);
+        } else {
+          state.isAnimating = false;
+          checkGameplayConditions();
+        }
+      }, 450);
+    }
+
+    function checkGameplayConditions() {
+      if (state.sapphiresCollected >= state.targetSapphires) {
+        // WIN LEVEL!
+        triggerGameOver(true);
+      } else if (state.movesLeft <= 0) {
+        // LOSE LEVEL!
+        triggerGameOver(false);
+      }
+    }
+
+    // SCREEN 6: Pause Overlay System
+    function togglePauseGame() {
+      playClickSound();
+      state.isPaused = !state.isPaused;
+      const modal = document.getElementById('modal-pause');
+      if (state.isPaused) {
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function restartLevel() {
+      document.getElementById('modal-pause').classList.add('hidden');
+      document.getElementById('modal-gameover').classList.add('hidden');
+      launchLevel();
+    }
+
+    function exitToMap() {
+      document.getElementById('modal-pause').classList.add('hidden');
+      document.getElementById('modal-gameover').classList.add('hidden');
+      showMapScreen();
+    }
+
+    // Boosters System
+    function activateHammerBooster() {
+      if (state.gold < 200) {
+        alert("You need at least 200 gold to purchase the hammer booster!");
+        return;
+      }
+      playClickSound();
+      state.activeBooster = 'hammer';
+      document.getElementById('game-instruction').innerText = "🔨 TAP ANY GEM TO SMASH!";
+      document.getElementById('hammer-btn').classList.add('bg-red-500', 'text-white');
+    }
+
+    function useHammer(r, c) {
+      playHammerSound();
+      state.gold -= 200;
+      localStorage.setItem('user_gold', state.gold);
+      
+      // Clear Booster
+      state.activeBooster = null;
+      document.getElementById('game-instruction').innerText = "👉 TAP TWO ADJACENT GEMS TO SWAP!";
+      document.getElementById('hammer-btn').classList.remove('bg-red-500', 'text-white');
+
+      // Process single item break
+      state.board[r][c] = GEMS[Math.floor(Math.random() * GEMS.length)];
+      renderBoardUI();
+
+      // Check for cascades
+      const matches = findAllMatches();
+      if (matches.length > 0) {
+        state.currentChain = 1;
+        processMatches(matches);
+      }
+    }
+
+    // SCREEN 7: GameOver state handling
+    function triggerGameOver(isWin) {
+      const modal = document.getElementById('modal-gameover');
+      const emoji = document.getElementById('modal-gameover-emoji');
+      const title = document.getElementById('modal-gameover-title');
+      const msg = document.getElementById('modal-gameover-msg');
+      const score = document.getElementById('modal-gameover-score');
+      const best = document.getElementById('modal-gameover-best');
+      const reward = document.getElementById('modal-gameover-reward');
+
+      score.innerText = state.levelScore;
+
+      if (isWin) {
+        playVictorySound();
+        emoji.innerText = "🏆";
+        title.innerText = "LEVEL COMPLETED!";
+        msg.innerText = "Fantastic crystal alignment!";
+        
+        // Calculate unlocks and rewards
+        if (state.activeLevel === state.unlockedStage && state.unlockedStage < 3) {
+          state.unlockedStage++;
+          localStorage.setItem('unlocked_stage', state.unlockedStage);
+        }
+
+        // Add loot
+        state.gold += 300;
+        state.gems += 2;
+        localStorage.setItem('user_gold', state.gold);
+        localStorage.setItem('user_gems', state.gems);
+        reward.innerText = "+300 Gold & +2 Gems 💎";
+
+        // Save highscore
+        if (state.levelScore > state.bestScore) {
+          state.bestScore = state.levelScore;
+          localStorage.setItem('best_score', state.bestScore);
+          title.innerText = "⭐ NEW BEST SCORE! ⭐";
+        }
+      } else {
+        // Lose
+        playTone([120, 100], 400);
+        emoji.innerText = "💀";
+        title.innerText = "STAGE FAILED";
+        msg.innerText = "Out of moves! Swap smarter next time.";
+        reward.innerText = "+0 Gold & Gems";
+      }
+
+      best.innerText = `${state.bestScore} Points`;
+      modal.classList.remove('hidden');
+    }
+
+  </script>
+</body>
+</html>
